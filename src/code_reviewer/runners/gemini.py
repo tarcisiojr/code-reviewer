@@ -1,7 +1,6 @@
 """Runner para Gemini CLI."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 
 from .base import RunnerNotFoundError, check_command_exists
@@ -46,40 +45,23 @@ class GeminiCLIRunner:
                 "Ou configure outro runner com --runner <nome>"
             )
 
-        # Escreve o prompt em um arquivo temporário para evitar
-        # problemas com caracteres especiais na linha de comando
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".md",
-            delete=False,
-            encoding="utf-8",
-        ) as f:
-            f.write(prompt)
-            prompt_file = f.name
+        # Executa o Gemini CLI passando o prompt via stdin
+        # O flag -y aceita automaticamente (YOLO mode para CI)
+        result = subprocess.run(
+            [
+                "gemini",
+                "-y",  # Auto-accept / YOLO mode
+            ],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            cwd=workdir,
+            timeout=300,  # 5 minutos de timeout
+        )
 
-        try:
-            # Executa o Gemini CLI com o arquivo de prompt
-            # O flag -y aceita automaticamente (YOLO mode para CI)
-            result = subprocess.run(
-                [
-                    "gemini",
-                    "-y",  # Auto-accept / YOLO mode
-                    "-p",
-                    f"@{prompt_file}",  # Lê prompt do arquivo
-                ],
-                capture_output=True,
-                text=True,
-                cwd=workdir,
-                timeout=300,  # 5 minutos de timeout
-            )
+        # Combina stdout e stderr (Gemini pode usar ambos)
+        output = result.stdout
+        if result.stderr:
+            output += "\n" + result.stderr
 
-            # Combina stdout e stderr (Gemini pode usar ambos)
-            output = result.stdout
-            if result.stderr:
-                output += "\n" + result.stderr
-
-            return output.strip()
-
-        finally:
-            # Remove arquivo temporário
-            Path(prompt_file).unlink(missing_ok=True)
+        return output.strip()
