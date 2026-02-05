@@ -1,1 +1,0 @@
-"""Formatters - Renderização de resultados."""
