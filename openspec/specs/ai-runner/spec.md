@@ -18,16 +18,30 @@ O sistema SHALL implementar `GeminiCLIRunner` que executa o prompt via `gemini` 
 - **WHEN** o comando `gemini` não é encontrado no PATH
 - **THEN** o runner lança erro com mensagem: "gemini-cli não encontrado. Instale em: https://github.com/google-gemini/gemini-cli"
 
+### Requirement: Capacidades agentic habilitadas por padrão
+Os runners SHALL habilitar capacidades agentic (auto-approve de tools) para permitir que as ferramentas de IA busquem contexto adicional durante a análise.
+
+#### Scenario: Runner executa com tools habilitadas
+- **WHEN** o runner executa uma análise
+- **THEN** as ferramentas de leitura de arquivos e busca de contexto estão automaticamente aprovadas
+
+### Requirement: Output limpo para CI/CD
+Os runners SHALL produzir output limpo e parseável quando executados em ambiente automatizado, sem prompts interativos ou formatação decorativa.
+
+#### Scenario: Execução em CI
+- **WHEN** o runner é executado em pipeline CI/CD
+- **THEN** o output contém apenas a resposta da análise sem elementos interativos
+
 ### Requirement: Runner para Copilot CLI
-O sistema SHALL implementar `CopilotCLIRunner` que executa o prompt via `gh copilot` CLI.
+O sistema SHALL implementar `CopilotCLIRunner` que executa o prompt via `copilot` CLI standalone com flags `--yolo` e `--silent`.
 
 #### Scenario: Execução com sucesso
-- **WHEN** o GitHub CLI com extensão Copilot está instalado e configurado
-- **THEN** o runner executa o comando e retorna o output
+- **WHEN** o `copilot` CLI standalone está instalado e autenticado
+- **THEN** o runner executa `copilot --yolo --silent` com o prompt e retorna o output completo
 
 #### Scenario: Copilot CLI não instalado
-- **WHEN** o comando `gh copilot` não é encontrado
-- **THEN** o runner lança erro com mensagem clara sobre como instalar
+- **WHEN** o comando `copilot` não é encontrado no PATH
+- **THEN** o runner lança erro com mensagem: "GitHub Copilot CLI não encontrado. Instale em: https://github.com/github/copilot-cli"
 
 ### Requirement: Seleção de runner via parâmetro CLI
 O sistema SHALL permitir selecionar o runner via flag `--runner` (ex: `--runner gemini`, `--runner copilot`), com `gemini` como valor default.
