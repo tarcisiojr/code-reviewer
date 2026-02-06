@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.0 (2026-02-06)
+
+### Features
+
+- Funcionalidade pra revisao ortografica
+  ([`74ef101`](https://github.com/tarcisiojr/airev/commit/74ef10133a341ad666b5e67ecc62fb132e24adcc))
+
+
 ## v1.2.0 (2026-02-06)
 
 ### Features
