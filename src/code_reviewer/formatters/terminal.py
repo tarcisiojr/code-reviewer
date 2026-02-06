@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import TextIO
 import sys
 
+from ..i18n import t
 from ..models import Finding, ReviewResult, Severity
 
 
@@ -101,7 +102,7 @@ def format_finding(finding: Finding) -> str:
     # Sugestão
     if finding.suggestion:
         lines.append("  │")
-        lines.append(f"  │ {_colorize('Sugestão:', Colors.GREEN)} {finding.suggestion}")
+        lines.append(f"  │ {_colorize(t('terminal.suggestion'), Colors.GREEN)} {finding.suggestion}")
 
     lines.append("")
 
@@ -130,10 +131,11 @@ def format_header(result: ReviewResult) -> str:
         Header formatado
     """
     line = "═" * 50
+    files_text = t("terminal.files_count", count=result.files_analyzed)
     return f"""
 {_colorize(line, Colors.DIM)}
-{_colorize("  CODE REVIEW", Colors.BOLD)} — {_colorize(result.branch, Colors.CYAN)}
-  Comparado com: {_colorize(result.base, Colors.CYAN)}  │  {result.files_analyzed} arquivo(s)
+{_colorize(f"  {t('terminal.code_review')}", Colors.BOLD)} — {_colorize(result.branch, Colors.CYAN)}
+  {t('terminal.compared_with')} {_colorize(result.base, Colors.CYAN)}  │  {files_text}
 {_colorize(line, Colors.DIM)}
 """
 
@@ -152,17 +154,18 @@ def format_summary(result: ReviewResult) -> str:
     if result.summary.total == 0:
         return f"""
 {_colorize(line, Colors.DIM)}
-  {_colorize("✓ Nenhum problema encontrado. Código aprovado!", Colors.GREEN)}
+  {_colorize(t('terminal.no_problems'), Colors.GREEN)}
 {_colorize(line, Colors.DIM)}
 """
 
     critical = _colorize(str(result.summary.critical), Colors.RED) if result.summary.critical else "0"
     warning = _colorize(str(result.summary.warning), Colors.YELLOW) if result.summary.warning else "0"
     info = _colorize(str(result.summary.info), Colors.BLUE) if result.summary.info else "0"
+    findings_text = t("terminal.findings_count", count=result.summary.total)
 
     return f"""
 {_colorize(line, Colors.DIM)}
-  {_colorize("RESUMO:", Colors.BOLD)} {result.summary.total} finding(s)
+  {_colorize(t('terminal.summary'), Colors.BOLD)} {findings_text}
   {critical} critical, {warning} warning, {info} info
 {_colorize(line, Colors.DIM)}
 """
@@ -202,7 +205,7 @@ def format_result(result: ReviewResult, output: TextIO = sys.stdout) -> None:
     # Raw response se houver
     if result.raw_response:
         output.write("\n")
-        output.write(_colorize("Resposta raw da IA:", Colors.DIM))
+        output.write(_colorize(t("terminal.raw_response"), Colors.DIM))
         output.write("\n")
         output.write(result.raw_response[:500])
         if len(result.raw_response) > 500:

@@ -1,0 +1,61 @@
+# Traduções em Português Brasileiro (padrão)
+
+cli:
+  # Mensagens de análise
+  analyzing: "Analisando: [bold]{branch}[/bold] → [bold]{base}[/bold]"
+  getting_diff: "Obtendo diff..."
+  analyzing_diff: "Analisando diff..."
+  building_context: "Construindo contexto..."
+  building_prompt: "Montando prompt..."
+  running_analysis: "Executando análise com {runner}..."
+  processing_response: "Processando resposta..."
+  analysis_complete: "Análise concluída em {elapsed:.1f}s"
+
+  # Mensagens de erro
+  error_branch: "Erro ao obter branch atual: {error}"
+  error_diff: "Erro ao obter diff: {error}"
+  error_diff_help: "Verifique se a branch '{base}' existe e se você está em um repositório git."
+  error_runner_invalid: "Runner inválido: {error}"
+  error_runner_unavailable: "Runner '{runner}' não está disponível."
+  error_runner_help: "Verifique se o CLI está instalado e configurado."
+  error_runner_not_found: "Runner não encontrado: {error}"
+  error_execution: "Erro na execução: {error}"
+
+  # Mensagens de aviso
+  no_changes: "Nenhuma mudança encontrada no diff."
+  no_files: "Nenhum arquivo relevante para analisar."
+
+  # Dependências
+  dependencies_found: "Dependências encontradas:"
+
+progress:
+  # Labels de resumo
+  modified_files: "Arquivos modificados:"
+  files_label: "Arquivos:"
+  lines_label: "Linhas:"
+  no_dependencies: "Sem dependências encontradas"
+  callers: "Callers:"
+  callees: "Callees:"
+  more: "+{count} mais"
+
+terminal:
+  # Header
+  code_review: "CODE REVIEW"
+  compared_with: "Comparado com:"
+  files_count: "{count} arquivo(s)"
+
+  # Findings
+  suggestion: "Sugestão:"
+
+  # Resumo
+  summary: "RESUMO:"
+  findings_count: "{count} finding(s)"
+  no_problems: "✓ Nenhum problema encontrado. Código aprovado!"
+  raw_response: "Resposta raw da IA:"
+
+parser:
+  # Fallback
+  unstructured_response: "Resposta não estruturada"
+  unstructured_description: "A IA retornou texto não formatado como JSON"
+  unstructured_suggestion: "Verifique a resposta raw para detalhes"
+  no_title: "Sem título"

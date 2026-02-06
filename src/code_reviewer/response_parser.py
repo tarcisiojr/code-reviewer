@@ -4,6 +4,7 @@ import json
 import re
 from typing import Any, Optional
 
+from .i18n import t
 from .models import Category, Finding, ReviewResult, ReviewSummary, Severity
 
 
@@ -140,7 +141,7 @@ def parse_finding(data: dict[str, Any]) -> Optional[Finding]:
             line=int(data.get("line", 0)),
             severity=normalize_severity(str(data.get("severity", "INFO"))),
             category=normalize_category(str(data.get("category", "bug"))),
-            title=str(data.get("title", "Sem título")),
+            title=str(data.get("title", t("parser.no_title"))),
             description=str(data.get("description", "")),
             suggestion=str(data.get("suggestion", "")),
             code_snippet=str(data.get("code_snippet", "")),
@@ -214,9 +215,9 @@ def parse_response(
                 line=0,
                 severity=Severity.INFO,
                 category=Category.BUG,
-                title="Resposta não estruturada",
-                description="A IA retornou texto não formatado como JSON",
-                suggestion="Verifique a resposta raw para detalhes",
+                title=t("parser.unstructured_response"),
+                description=t("parser.unstructured_description"),
+                suggestion=t("parser.unstructured_suggestion"),
                 code_snippet="",
             )
         ],

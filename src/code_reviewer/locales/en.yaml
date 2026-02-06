@@ -1,0 +1,61 @@
+# English translations
+
+cli:
+  # Analysis messages
+  analyzing: "Analyzing: [bold]{branch}[/bold] → [bold]{base}[/bold]"
+  getting_diff: "Getting diff..."
+  analyzing_diff: "Analyzing diff..."
+  building_context: "Building context..."
+  building_prompt: "Building prompt..."
+  running_analysis: "Running analysis with {runner}..."
+  processing_response: "Processing response..."
+  analysis_complete: "Analysis completed in {elapsed:.1f}s"
+
+  # Error messages
+  error_branch: "Error getting current branch: {error}"
+  error_diff: "Error getting diff: {error}"
+  error_diff_help: "Check if branch '{base}' exists and you're in a git repository."
+  error_runner_invalid: "Invalid runner: {error}"
+  error_runner_unavailable: "Runner '{runner}' is not available."
+  error_runner_help: "Check if the CLI is installed and configured."
+  error_runner_not_found: "Runner not found: {error}"
+  error_execution: "Execution error: {error}"
+
+  # Warning messages
+  no_changes: "No changes found in diff."
+  no_files: "No relevant files to analyze."
+
+  # Dependencies
+  dependencies_found: "Dependencies found:"
+
+progress:
+  # Summary labels
+  modified_files: "Modified files:"
+  files_label: "Files:"
+  lines_label: "Lines:"
+  no_dependencies: "No dependencies found"
+  callers: "Callers:"
+  callees: "Callees:"
+  more: "+{count} more"
+
+terminal:
+  # Header
+  code_review: "CODE REVIEW"
+  compared_with: "Compared with:"
+  files_count: "{count} file(s)"
+
+  # Findings
+  suggestion: "Suggestion:"
+
+  # Summary
+  summary: "SUMMARY:"
+  findings_count: "{count} finding(s)"
+  no_problems: "✓ No issues found. Code approved!"
+  raw_response: "AI raw response:"
+
+parser:
+  # Fallback
+  unstructured_response: "Unstructured response"
+  unstructured_description: "The AI returned text not formatted as JSON"
+  unstructured_suggestion: "Check the raw response for details"
+  no_title: "No title"

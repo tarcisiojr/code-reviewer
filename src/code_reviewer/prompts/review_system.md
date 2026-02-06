@@ -39,6 +39,10 @@ Retorne APENAS um JSON válido no formato abaixo. Não inclua explicações fora
 
 {references}
 
+## IDIOMA DE RESPOSTA
+
+Escreva todos os textos (title, description, suggestion) em **{language}**.
+
 ---
 
 Analise as mudanças e retorne o JSON com os findings. Se não encontrar problemas, retorne um JSON com lista de findings vazia.

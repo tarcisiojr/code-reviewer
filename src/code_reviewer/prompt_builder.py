@@ -3,6 +3,13 @@
 import json
 from pathlib import Path
 from .models import ContextGraph, DiffFile
+from .i18n import get_language
+
+# Mapeamento de código de idioma para nome legível
+LANGUAGE_NAMES = {
+    "pt-br": "Português Brasileiro",
+    "en": "English",
+}
 
 # Schema JSON de exemplo para o prompt
 JSON_SCHEMA_EXAMPLE = {
@@ -172,10 +179,15 @@ def build_prompt(
     # Schema JSON formatado
     json_schema = json.dumps(JSON_SCHEMA_EXAMPLE, indent=2, ensure_ascii=False)
 
+    # Obtém nome do idioma para o prompt
+    lang_code = get_language()
+    language_name = LANGUAGE_NAMES.get(lang_code, lang_code)
+
     # Substitui placeholders
     prompt = template.replace("{diff}", diff_section)
     prompt = prompt.replace("{context}", context_section)
     prompt = prompt.replace("{references}", references_section)
     prompt = prompt.replace("{json_schema}", json_schema)
+    prompt = prompt.replace("{language}", language_name)
 
     return prompt
