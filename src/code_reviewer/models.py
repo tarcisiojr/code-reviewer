@@ -21,6 +21,7 @@ class Category(str, Enum):
     PERFORMANCE = "performance"
     BUG = "bug"
     RESOURCE_LEAK = "resource-leak"
+    TEXT_QUALITY = "text-quality"
 
 
 class DiffLine(BaseModel):
@@ -90,7 +91,7 @@ class Finding(BaseModel):
     line: int = Field(description="Número da linha")
     severity: Severity = Field(description="Severidade: CRITICAL, WARNING, INFO")
     category: Category = Field(
-        description="Categoria: security, performance, bug, resource-leak"
+        description="Categoria: security, performance, bug, resource-leak, text-quality"
     )
     title: str = Field(description="Título curto do problema")
     description: str = Field(description="Descrição detalhada do problema")

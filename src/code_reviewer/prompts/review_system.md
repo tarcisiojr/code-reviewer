@@ -25,7 +25,7 @@ O DIFF abaixo mostra APENAS as linhas alteradas, não o arquivo completo. Códig
 - **Performance**: N+1 queries, loops desnecessários, operações O(n²), falta de índices, carregamento excessivo
 - **Bugs potenciais**: null pointer, race conditions, off-by-one, divisão por zero, exceções não tratadas
 - **Recursos não fechados**: conexões de banco, arquivos, sockets, locks não liberados
-
+{text_quality_section}
 ## FORMATO DE SAÍDA
 
 Retorne APENAS um JSON válido no formato abaixo. Não inclua explicações fora do JSON.

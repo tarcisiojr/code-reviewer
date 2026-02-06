@@ -47,6 +47,13 @@ terminal:
   # Findings
   suggestion: "Sugestão:"
 
+  # Categorias
+  category_security: "segurança"
+  category_performance: "performance"
+  category_bug: "bug"
+  category_resource_leak: "vazamento de recurso"
+  category_text_quality: "qualidade de texto"
+
   # Resumo
   summary: "RESUMO:"
   findings_count: "{count} finding(s)"

@@ -188,3 +188,70 @@ class TestBuildPrompt:
         assert "REGRAS" in prompt
         assert "test.py" in prompt
         assert "review" in prompt  # Schema JSON
+
+    def test_prompt_sem_text_quality_por_padrao(self):
+        """Verifica que seção text-quality não aparece quando flag desativada."""
+        diff_files = [
+            DiffFile(
+                path="test.py",
+                hunks=[
+                    DiffHunk(
+                        function_name="test",
+                        start_line_old=1,
+                        start_line_new=1,
+                        added_lines=[],
+                        removed_lines=[],
+                    )
+                ],
+            )
+        ]
+        context_graphs = []
+
+        prompt = build_prompt(diff_files, context_graphs, "feature/test", "main")
+
+        # Não deve conter seção de text-quality
+        assert "QUALIDADE DE TEXTO" not in prompt
+        assert "text-quality" not in prompt
+
+    def test_prompt_com_text_quality_ativo(self):
+        """Verifica que seção text-quality aparece quando flag ativada."""
+        diff_files = [
+            DiffFile(
+                path="test.py",
+                hunks=[
+                    DiffHunk(
+                        function_name="test",
+                        start_line_old=1,
+                        start_line_new=1,
+                        added_lines=[],
+                        removed_lines=[],
+                    )
+                ],
+            )
+        ]
+        context_graphs = []
+
+        prompt = build_prompt(
+            diff_files, context_graphs, "feature/test", "main", text_quality=True
+        )
+
+        # Deve conter seção de text-quality
+        assert "QUALIDADE DE TEXTO" in prompt
+        assert "text-quality" in prompt
+        assert "ortografia" in prompt
+        assert "raise *Error" in prompt
+        assert "locales/" in prompt
+
+    def test_prompt_text_quality_menciona_ignorar_identificadores(self):
+        """Verifica que instruções de exclusão estão presentes."""
+        diff_files = []
+        context_graphs = []
+
+        prompt = build_prompt(
+            diff_files, context_graphs, "feature/test", "main", text_quality=True
+        )
+
+        # Deve instruir a ignorar identificadores
+        assert "snake_case" in prompt
+        assert "camelCase" in prompt
+        assert "termos técnicos" in prompt or "Termos técnicos" in prompt

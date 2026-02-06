@@ -47,6 +47,13 @@ terminal:
   # Findings
   suggestion: "Suggestion:"
 
+  # Categories
+  category_security: "security"
+  category_performance: "performance"
+  category_bug: "bug"
+  category_resource_leak: "resource leak"
+  category_text_quality: "text quality"
+
   # Summary
   summary: "SUMMARY:"
   findings_count: "{count} finding(s)"

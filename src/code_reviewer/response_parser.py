@@ -121,6 +121,11 @@ def normalize_category(value: str) -> Category:
         "resource_leak": Category.RESOURCE_LEAK,
         "leak": Category.RESOURCE_LEAK,
         "memory": Category.RESOURCE_LEAK,
+        "text-quality": Category.TEXT_QUALITY,
+        "text_quality": Category.TEXT_QUALITY,
+        "spelling": Category.TEXT_QUALITY,
+        "grammar": Category.TEXT_QUALITY,
+        "typo": Category.TEXT_QUALITY,
     }
 
     return mapping.get(value_lower, Category.BUG)

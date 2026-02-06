@@ -75,6 +75,13 @@ def main():
     type=click.Choice(get_available_languages()),
     help="Idioma das mensagens (default: pt-br)",
 )
+@click.option(
+    "--text-quality",
+    "-t",
+    is_flag=True,
+    default=False,
+    help="Ativa verificação de ortografia e clareza em mensagens de usuário",
+)
 def review(
     base: str,
     runner: str,
@@ -83,6 +90,7 @@ def review(
     no_progress: bool,
     progress: bool,
     lang: str,
+    text_quality: bool,
 ):
     """Analisa o diff da branch atual contra a branch base.
 
@@ -95,6 +103,8 @@ def review(
         airev review --base main --json-output
 
         airev review --base main --no-progress
+
+        airev review --base main --text-quality
     """
     workdir = workdir or Path.cwd()
     start_time = time.perf_counter()
@@ -173,7 +183,9 @@ def review(
 
     # Monta o prompt
     with reporter.status(t("cli.building_prompt")):
-        prompt = build_prompt(diff_files, context_graphs, current_branch, base)
+        prompt = build_prompt(
+            diff_files, context_graphs, current_branch, base, text_quality=text_quality
+        )
 
     # Obtém o runner
     try:

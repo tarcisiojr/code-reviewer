@@ -5,7 +5,7 @@ from typing import TextIO
 import sys
 
 from ..i18n import t
-from ..models import Finding, ReviewResult, Severity
+from ..models import Category, Finding, ReviewResult, Severity
 
 
 # Códigos ANSI para cores
@@ -71,6 +71,28 @@ def format_severity(severity: Severity) -> str:
         return _colorize(f"[{severity.value}]", Colors.BOLD, Colors.BLUE)
 
 
+def format_category_badge(category: Category) -> str:
+    """Formata o badge da categoria.
+
+    Args:
+        category: Categoria do finding
+
+    Returns:
+        String formatada com ícone e cor para a categoria
+    """
+    # Ícones e cores por categoria
+    category_styles = {
+        Category.SECURITY: ("🔒", Colors.RED),
+        Category.PERFORMANCE: ("⚡", Colors.YELLOW),
+        Category.BUG: ("🐛", Colors.MAGENTA),
+        Category.RESOURCE_LEAK: ("💧", Colors.CYAN),
+        Category.TEXT_QUALITY: ("✏️", Colors.CYAN),
+    }
+
+    icon, color = category_styles.get(category, ("•", Colors.WHITE))
+    return f"{icon} {_colorize(category.value, color)}"
+
+
 def format_finding(finding: Finding) -> str:
     """Formata um finding para exibição.
 
@@ -84,10 +106,11 @@ def format_finding(finding: Finding) -> str:
 
     # Header: [SEVERITY] arquivo:linha - Título
     severity_str = format_severity(finding.severity)
+    category_badge = format_category_badge(finding.category)
     location = _colorize(f"{finding.file}:{finding.line}", Colors.CYAN)
     title = _colorize(finding.title, Colors.BOLD)
 
-    lines.append(f"  {severity_str} {location} - {title}")
+    lines.append(f"  {severity_str} {category_badge} {location} - {title}")
 
     # Descrição
     if finding.description:

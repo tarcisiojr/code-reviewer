@@ -117,6 +117,13 @@ class TestNormalizeCategory:
         assert normalize_category("resource-leak") == Category.RESOURCE_LEAK
         assert normalize_category("memory") == Category.RESOURCE_LEAK
 
+    def test_text_quality(self):
+        assert normalize_category("text-quality") == Category.TEXT_QUALITY
+        assert normalize_category("text_quality") == Category.TEXT_QUALITY
+        assert normalize_category("spelling") == Category.TEXT_QUALITY
+        assert normalize_category("grammar") == Category.TEXT_QUALITY
+        assert normalize_category("typo") == Category.TEXT_QUALITY
+
     def test_desconhecido_para_bug(self):
         assert normalize_category("unknown") == Category.BUG
 

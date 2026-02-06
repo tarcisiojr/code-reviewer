@@ -152,11 +152,54 @@ def format_references_for_prompt(context_graphs: list[ContextGraph]) -> str:
     return "\n".join(parts)
 
 
+def get_text_quality_section(language_name: str) -> str:
+    """Retorna a seção de instruções para verificação de qualidade de texto.
+
+    Args:
+        language_name: Nome do idioma para verificação
+
+    Returns:
+        String com instruções de verificação de texto
+    """
+    return f"""
+## QUALIDADE DE TEXTO
+
+Verifique ortografia e clareza semântica em mensagens voltadas ao usuário, no idioma **{language_name}**.
+
+### O que verificar:
+
+**Padrões de código:**
+- `raise *Error("...")` e `raise *Exception("...")`
+- `print("...")` e `console.log("...")`
+- Parâmetros nomeados: `message=`, `label=`, `title=`, `description=`, `text=`
+- Funções de UI: `flash("...")`, `toast("...")`, `alert("...")`
+
+**Arquivos de i18n:**
+- Arquivos em `locales/**/*`
+- Arquivos em `i18n/**/*`
+- Arquivos `messages.*` e `strings.*`
+
+### O que ignorar:
+
+- Identificadores: snake_case, camelCase, PascalCase
+- Termos técnicos: HTTP, JSON, API, SQL, URL, etc.
+- Nomes próprios e termos de domínio específico
+- Chaves de configuração e variáveis de ambiente
+
+### Formato dos findings:
+
+- Categoria: `text-quality`
+- Severidade: sempre `INFO`
+- Inclua a correção sugerida no campo `suggestion`
+"""
+
+
 def build_prompt(
     diff_files: list[DiffFile],
     context_graphs: list[ContextGraph],
     branch: str,
     base: str,
+    text_quality: bool = False,
 ) -> str:
     """Monta o prompt completo para a IA.
 
@@ -165,6 +208,7 @@ def build_prompt(
         context_graphs: Grafos de contexto com backtracking
         branch: Nome da branch sendo analisada
         base: Nome da branch base
+        text_quality: Se True, inclui verificação de ortografia e clareza
 
     Returns:
         Prompt completo pronto para enviar à IA
@@ -183,11 +227,15 @@ def build_prompt(
     lang_code = get_language()
     language_name = LANGUAGE_NAMES.get(lang_code, lang_code)
 
+    # Seção de text-quality (condicional)
+    text_quality_section = get_text_quality_section(language_name) if text_quality else ""
+
     # Substitui placeholders
     prompt = template.replace("{diff}", diff_section)
     prompt = prompt.replace("{context}", context_section)
     prompt = prompt.replace("{references}", references_section)
     prompt = prompt.replace("{json_schema}", json_schema)
     prompt = prompt.replace("{language}", language_name)
+    prompt = prompt.replace("{text_quality_section}", text_quality_section)
 
     return prompt
