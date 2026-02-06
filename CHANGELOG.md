@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-02-06)
+
+### Features
+
+- Implement cache invalidation and version verification after upgrade
+  ([`80ad7b2`](https://github.com/tarcisiojr/airev/commit/80ad7b25a970af8769775bd93ce8454f6e4cd299))
+
+### Refactoring
+
+- Rename code-reviewer references to airev
+  ([`6bc0bc7`](https://github.com/tarcisiojr/airev/commit/6bc0bc7710e834dbdb2152b5762a3e453e79d49e))
+
+
 ## v1.1.1 (2026-02-06)
 
 ### Bug Fixes
