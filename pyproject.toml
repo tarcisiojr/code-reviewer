@@ -49,7 +49,7 @@ version = {attr = "code_reviewer.__version__"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-code_reviewer = ["prompts/*.md"]
+code_reviewer = ["prompts/*.md", "locales/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
