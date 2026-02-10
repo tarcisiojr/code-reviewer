@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-02-10)
+
+### Features
+
+- Add description input feature to CLI for enhanced code review context
+  ([`473daf3`](https://github.com/tarcisiojr/airev/commit/473daf317a3e9f2289ee232d31f0538dd38125ac))
+
+
 ## v1.3.0 (2026-02-06)
 
 ### Features
