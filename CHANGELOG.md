@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.5.0 (2026-02-10)
+
+### Chores
+
+- Enhance review quality with structured prompts
+  ([`648e352`](https://github.com/tarcisiojr/airev/commit/648e352fde82b30e67387dd4e0c2439cfcee3f6d))
+
+### Documentation
+
+- Update specifications and tasks for new features
+  ([`648e352`](https://github.com/tarcisiojr/airev/commit/648e352fde82b30e67387dd4e0c2439cfcee3f6d))
+
+### Features
+
+- Add PR description input via CLI and stdin
+  ([`648e352`](https://github.com/tarcisiojr/airev/commit/648e352fde82b30e67387dd4e0c2439cfcee3f6d))
+
+
 ## v1.4.0 (2026-02-10)
 
 ### Features
