@@ -69,6 +69,97 @@ class TestFormatDiffForPrompt:
         assert "removido.py" in result
         assert "(arquivo removido)" in result
 
+    def test_formata_linhas_contexto_com_espaco(self):
+        """Verifica que linhas de contexto são formatadas com espaço inicial."""
+        diff_file = DiffFile(
+            path="test.py",
+            hunks=[
+                DiffHunk(
+                    function_name="my_func",
+                    start_line_old=10,
+                    start_line_new=10,
+                    added_lines=[
+                        DiffLine(line_number=12, content="    linha_nova()", is_addition=True)
+                    ],
+                    removed_lines=[],
+                    context_lines=[
+                        DiffLine(line_number=11, content="    if (", is_addition=False),
+                        DiffLine(line_number=13, content="    ):", is_addition=False),
+                    ],
+                )
+            ],
+        )
+
+        result = format_diff_for_prompt([diff_file])
+
+        # Linhas de contexto devem ter espaço como prefixo
+        assert "     if (" in result  # espaço do diff + indentação original
+        assert "     ):" in result
+        # Linha adicionada deve ter +
+        assert "+    linha_nova()" in result
+
+    def test_ordena_linhas_por_numero(self):
+        """Verifica que linhas são ordenadas pelo número de linha."""
+        diff_file = DiffFile(
+            path="test.py",
+            hunks=[
+                DiffHunk(
+                    function_name="my_func",
+                    start_line_old=10,
+                    start_line_new=10,
+                    added_lines=[
+                        DiffLine(line_number=12, content="linha_b()", is_addition=True)
+                    ],
+                    removed_lines=[
+                        DiffLine(line_number=11, content="linha_removida()", is_addition=False)
+                    ],
+                    context_lines=[
+                        DiffLine(line_number=10, content="if True:", is_addition=False),
+                        DiffLine(line_number=13, content="return", is_addition=False),
+                    ],
+                )
+            ],
+        )
+
+        result = format_diff_for_prompt([diff_file])
+        lines = result.split("\n")
+
+        # Procura os índices das linhas relevantes
+        idx_if = next(i for i, l in enumerate(lines) if "if True" in l)
+        idx_removed = next(i for i, l in enumerate(lines) if "linha_removida" in l)
+        idx_added = next(i for i, l in enumerate(lines) if "linha_b" in l)
+        idx_return = next(i for i, l in enumerate(lines) if "return" in l)
+
+        # Verifica ordem: if < removida < adicionada < return
+        assert idx_if < idx_removed < idx_added < idx_return
+
+    def test_preserva_indentacao_contexto(self):
+        """Verifica que a indentação original das linhas de contexto é preservada."""
+        diff_file = DiffFile(
+            path="test.py",
+            hunks=[
+                DiffHunk(
+                    function_name="nested",
+                    start_line_old=20,
+                    start_line_new=20,
+                    added_lines=[
+                        DiffLine(line_number=22, content="            deep_call()", is_addition=True)
+                    ],
+                    removed_lines=[],
+                    context_lines=[
+                        DiffLine(line_number=21, content="        for x in items:", is_addition=False),
+                    ],
+                )
+            ],
+        )
+
+        result = format_diff_for_prompt([diff_file])
+
+        # Deve preservar a indentação (8 espaços + espaço do diff)
+        assert "         for x in items:" in result
+        # Adição com 12 espaços
+        assert "+            deep_call()" in result
+
 
 class TestFormatContextForPrompt:
     """Testes para função format_context_for_prompt."""

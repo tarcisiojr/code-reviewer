@@ -55,3 +55,32 @@ class TestReviewCommand:
 
         assert result.exit_code == 0
         assert "--no-interactive" in result.output
+
+    def test_flag_context_lines_reconhecida(self):
+        """Verifica que a flag --context-lines é aceita pelo CLI."""
+        runner = CliRunner()
+
+        result = runner.invoke(review, ["--help"])
+
+        assert result.exit_code == 0
+        assert "--context-lines" in result.output
+        assert "contexto" in result.output.lower()
+
+    def test_flag_context_lines_short_form(self):
+        """Verifica que a forma curta -C funciona."""
+        runner = CliRunner()
+
+        result = runner.invoke(review, ["--help"])
+
+        assert result.exit_code == 0
+        assert "-C" in result.output
+
+    def test_flag_context_lines_default_3(self):
+        """Verifica que o valor default é 3."""
+        runner = CliRunner()
+
+        result = runner.invoke(review, ["--help"])
+
+        assert result.exit_code == 0
+        # Deve mencionar que o default é 3
+        assert "default: 3" in result.output.lower() or "(default: 3)" in result.output

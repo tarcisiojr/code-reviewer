@@ -155,3 +155,66 @@ class TestGetModifiedFunctions:
         functions = get_modified_functions(files)
 
         assert functions == []
+
+
+class TestParseContextLines:
+    """Testes para extração de linhas de contexto."""
+
+    def test_extrai_linhas_de_contexto(self):
+        """Verifica que linhas sem +/- são extraídas como contexto."""
+        files = parse_diff(SAMPLE_DIFF)
+        payment_file = files[0]
+        first_hunk = payment_file.hunks[0]
+
+        # O primeiro hunk tem linhas de contexto (validate_card, return result)
+        assert len(first_hunk.context_lines) > 0
+
+    def test_preserva_indentacao_linhas_contexto(self):
+        """Verifica que a indentação é preservada nas linhas de contexto."""
+        files = parse_diff(SAMPLE_DIFF)
+        payment_file = files[0]
+        first_hunk = payment_file.hunks[0]
+
+        # Procura linha de contexto com indentação
+        for line in first_hunk.context_lines:
+            if "validate_card" in line.content:
+                # Deve manter os espaços iniciais
+                assert line.content.startswith("    ")
+                break
+
+    def test_contexto_contem_linhas_antes_mudancas(self):
+        """Verifica que linhas antes das mudanças são capturadas."""
+        # Diff com contexto explícito antes e depois
+        diff_with_context = """diff --git a/test.py b/test.py
+index 1234567..abcdefg 100644
+--- a/test.py
++++ b/test.py
+@@ -10,5 +10,6 @@ def my_function():
+     if (
+         condition_a
++        and condition_b
+     ):
+         do_something()
+"""
+        files = parse_diff(diff_with_context)
+        assert len(files) == 1
+
+        hunk = files[0].hunks[0]
+
+        # Deve ter linhas de contexto
+        assert len(hunk.context_lines) >= 2
+
+        # Verifica que o if ( e ): estão no contexto
+        context_contents = [line.content.strip() for line in hunk.context_lines]
+        assert "if (" in context_contents
+        assert "):" in context_contents
+
+    def test_numero_linha_contexto_correto(self):
+        """Verifica que o número de linha das linhas de contexto está correto."""
+        files = parse_diff(SAMPLE_DIFF)
+        payment_file = files[0]
+        second_hunk = payment_file.hunks[1]
+
+        # Verifica que as linhas de contexto têm números de linha válidos
+        for line in second_hunk.context_lines:
+            assert line.line_number > 0

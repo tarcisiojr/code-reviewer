@@ -1,45 +1,34 @@
 ## ADDED Requirements
 
-### Requirement: Parsear JSON da resposta da IA
-O sistema SHALL tentar parsear a resposta da IA como JSON usando `json.loads()`.
+### Requirement: Parsear campo confidence do Finding
+O sistema SHALL parsear o campo `confidence` de cada finding retornado pela LLM.
 
-#### Scenario: JSON válido retornado diretamente
-- **WHEN** a IA retorna `{"review": {"findings": [...], "summary": {...}}}`
-- **THEN** o parser converte para o modelo Pydantic `ReviewResult` com sucesso
+#### Scenario: Confidence presente e válido
+- **WHEN** a LLM retorna um finding com `"confidence": 8`
+- **THEN** o Finding parseado tem confidence=8
 
-#### Scenario: JSON dentro de bloco markdown
-- **WHEN** a IA retorna o JSON envolvido em ` ```json ... ``` `
-- **THEN** o parser extrai o conteúdo do bloco markdown e parseia o JSON
+#### Scenario: Confidence ausente
+- **WHEN** a LLM retorna um finding sem o campo confidence
+- **THEN** o Finding parseado tem confidence=10 (fallback)
 
-### Requirement: Fallback para respostas malformadas
-O sistema SHALL implementar uma cadeia de fallbacks quando o JSON não é válido: (1) tentar extrair de bloco markdown, (2) tentar regex para encontrar `{...}`, (3) retornar como texto raw não estruturado.
+#### Scenario: Confidence fora do range (alto)
+- **WHEN** a LLM retorna um finding com `"confidence": 15`
+- **THEN** o Finding parseado tem confidence=10
 
-#### Scenario: JSON parcialmente correto
-- **WHEN** a resposta contém texto antes/depois do JSON mas o JSON em si é válido
-- **THEN** o parser extrai o JSON via regex e parseia com sucesso
+#### Scenario: Confidence fora do range (baixo)
+- **WHEN** a LLM retorna um finding com `"confidence": 0`
+- **THEN** o Finding parseado tem confidence=1
 
-#### Scenario: Resposta completamente não-JSON
-- **WHEN** a IA retorna texto livre sem nenhum JSON válido
-- **THEN** o parser retorna um `ReviewResult` com um único finding do tipo INFO contendo o texto raw da resposta
+### Requirement: Parsear categoria breaking-change
+O sistema SHALL aceitar a categoria "breaking-change" nos findings.
 
-### Requirement: Validar com modelos Pydantic
-O sistema SHALL validar o JSON parseado contra modelos Pydantic: `ReviewResult` contendo `findings: list[Finding]` e `summary: ReviewSummary`.
+#### Scenario: Categoria breaking-change válida
+- **WHEN** a LLM retorna um finding com `"category": "breaking-change"`
+- **THEN** o Finding parseado tem category=Category.BREAKING_CHANGE
 
-#### Scenario: Todos os campos presentes
-- **WHEN** o JSON contém todos os campos obrigatórios de cada Finding (file, line, severity, category, title, description, suggestion, code_snippet)
-- **THEN** a validação passa e retorna o modelo tipado
+### Requirement: Parsear categoria error-handling
+O sistema SHALL aceitar a categoria "error-handling" nos findings.
 
-#### Scenario: Campos opcionais ausentes
-- **WHEN** um Finding não contém `code_snippet` ou `suggestion`
-- **THEN** os campos ausentes recebem valor default (string vazia) e a validação passa
-
-#### Scenario: Severidade inválida
-- **WHEN** um Finding contém `severity: "HIGH"` em vez dos valores permitidos
-- **THEN** o parser mapeia para o valor mais próximo (`WARNING`) ou usa `INFO` como fallback
-
-### Requirement: Retornar resultado tipado
-O sistema SHALL retornar um objeto `ReviewResult` tipado que pode ser serializado de volta para JSON e usado por formatters/integrações futuras.
-
-#### Scenario: Serialização para JSON
-- **WHEN** o `ReviewResult` é serializado com `.model_dump_json()`
-- **THEN** o JSON resultante segue o schema definido e pode ser consumido por outros sistemas
+#### Scenario: Categoria error-handling válida
+- **WHEN** a LLM retorna um finding com `"category": "error-handling"`
+- **THEN** o Finding parseado tem category=Category.ERROR_HANDLING

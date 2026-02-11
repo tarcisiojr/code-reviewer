@@ -38,12 +38,15 @@ IGNORED_PATTERNS = [
 ]
 
 
-def get_git_diff(base_branch: str, workdir: Optional[Path] = None) -> str:
+def get_git_diff(
+    base_branch: str, workdir: Optional[Path] = None, context_lines: int = 3
+) -> str:
     """Executa git diff e retorna o output.
 
     Args:
         base_branch: Branch base para comparação (ex: main, develop)
         workdir: Diretório de trabalho (default: diretório atual)
+        context_lines: Número de linhas de contexto antes/depois de cada hunk (default: 3)
 
     Returns:
         Output do git diff como string
@@ -52,7 +55,7 @@ def get_git_diff(base_branch: str, workdir: Optional[Path] = None) -> str:
         subprocess.CalledProcessError: Se o comando git falhar
         FileNotFoundError: Se git não estiver instalado
     """
-    cmd = ["git", "diff", f"{base_branch}...HEAD"]
+    cmd = ["git", "diff", f"-U{context_lines}", f"{base_branch}...HEAD"]
 
     result = subprocess.run(
         cmd,
@@ -205,8 +208,16 @@ def parse_diff(diff_output: str) -> list[DiffFile]:
                 current_line_old += 1
             continue
 
-        # Linha de contexto (não modificada)
+        # Linha de contexto (não modificada) - preserva indentação original
         if line.startswith(" "):
+            if current_hunk is not None:
+                current_hunk.context_lines.append(
+                    DiffLine(
+                        line_number=current_line_new,
+                        content=line[1:],  # Remove o espaço inicial do diff, preserva indentação
+                        is_addition=False,
+                    )
+                )
             current_line_new += 1
             current_line_old += 1
 

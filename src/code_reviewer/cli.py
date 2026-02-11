@@ -103,6 +103,13 @@ def main():
     default=7,
     help="Exibe apenas findings com confidence >= N (default: 7). Use 1 para ver todos.",
 )
+@click.option(
+    "--context-lines",
+    "-C",
+    type=click.IntRange(0, 50),
+    default=3,
+    help="Linhas de contexto no diff (default: 3). Use 0 para desabilitar.",
+)
 def review(
     base: str,
     runner: str,
@@ -115,6 +122,7 @@ def review(
     description: str | None,
     no_interactive: bool,
     min_confidence: int,
+    context_lines: int,
 ):
     """Analisa o diff da branch atual contra a branch base.
 
@@ -137,6 +145,10 @@ def review(
         airev review --base main --min-confidence 5
 
         airev review --base main -c 1  # Ver todos os findings
+
+        airev review --base main --context-lines 5  # Mais contexto no diff
+
+        airev review --base main -C 0  # Sem linhas de contexto
     """
     workdir = workdir or Path.cwd()
     start_time = time.perf_counter()
@@ -181,7 +193,7 @@ def review(
     # Obtém o diff
     with reporter.status(t("cli.getting_diff")):
         try:
-            diff_output = get_git_diff(base, workdir)
+            diff_output = get_git_diff(base, workdir, context_lines=context_lines)
         except Exception as e:
             reporter.error(t("cli.error_diff", error=e))
             reporter.print(t("cli.error_diff_help", base=base))

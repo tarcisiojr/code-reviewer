@@ -59,11 +59,14 @@ def get_prompt_template() -> str:
 def format_diff_for_prompt(diff_files: list[DiffFile]) -> str:
     """Formata os arquivos do diff para inclusão no prompt.
 
+    Inclui linhas de contexto (sem prefixo +/-) para dar visibilidade
+    da estrutura do código ao redor das mudanças.
+
     Args:
         diff_files: Lista de arquivos parseados do diff
 
     Returns:
-        String formatada com o diff
+        String formatada com o diff no formato unificado
     """
     parts = []
 
@@ -81,11 +84,28 @@ def format_diff_for_prompt(diff_files: list[DiffFile]) -> str:
 
             parts.append(f"Linhas {hunk.start_line_new}+:")
 
-            for line in hunk.removed_lines:
-                parts.append(f"-{line.content}")
+            # Combina todas as linhas e ordena por número de linha para
+            # manter a ordem original do diff
+            all_lines: list[tuple[int, str, str]] = []
 
+            # Linhas removidas (prefixo -)
+            for line in hunk.removed_lines:
+                all_lines.append((line.line_number, "-", line.content))
+
+            # Linhas adicionadas (prefixo +)
             for line in hunk.added_lines:
-                parts.append(f"+{line.content}")
+                all_lines.append((line.line_number, "+", line.content))
+
+            # Linhas de contexto (prefixo espaço - padrão git diff)
+            for line in hunk.context_lines:
+                all_lines.append((line.line_number, " ", line.content))
+
+            # Ordena por número de linha
+            all_lines.sort(key=lambda x: x[0])
+
+            # Formata cada linha com seu prefixo
+            for _, prefix, content in all_lines:
+                parts.append(f"{prefix}{content}")
 
         parts.append("")
 

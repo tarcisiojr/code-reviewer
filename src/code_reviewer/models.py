@@ -48,6 +48,9 @@ class DiffHunk(BaseModel):
     removed_lines: list[DiffLine] = Field(
         default_factory=list, description="Linhas removidas"
     )
+    context_lines: list[DiffLine] = Field(
+        default_factory=list, description="Linhas de contexto (sem modificação)"
+    )
 
 
 class DiffFile(BaseModel):
