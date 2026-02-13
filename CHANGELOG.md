@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.7.0 (2026-02-13)
+
+### Features
+
+- Add --show-deps flag to visualize function dependency graphs in CLI
+  ([`c26dc7a`](https://github.com/tarcisiojr/airev/commit/c26dc7a7507ff14ab0962e76c2a3425da0d5d7e5))
+
+
 ## v1.6.0 (2026-02-11)
 
 ### Features
