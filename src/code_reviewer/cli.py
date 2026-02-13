@@ -110,6 +110,13 @@ def main():
     default=3,
     help="Linhas de contexto no diff (default: 3). Use 0 para desabilitar.",
 )
+@click.option(
+    "--show-deps",
+    "-D",
+    is_flag=True,
+    default=False,
+    help="Exibe grafo de dependências (callers/callees) das funções modificadas",
+)
 def review(
     base: str,
     runner: str,
@@ -123,6 +130,7 @@ def review(
     no_interactive: bool,
     min_confidence: int,
     context_lines: int,
+    show_deps: bool,
 ):
     """Analisa o diff da branch atual contra a branch base.
 
@@ -308,7 +316,11 @@ def review(
     if json_output:
         click.echo(result.model_dump_json(indent=2))
     else:
-        format_result(result)
+        format_result(
+            result,
+            context_graphs=context_graphs if show_deps else None,
+            show_deps=show_deps,
+        )
         reporter.print()
         reporter.success(t("cli.analysis_complete", elapsed=elapsed))
 

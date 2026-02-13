@@ -84,3 +84,22 @@ class TestReviewCommand:
         assert result.exit_code == 0
         # Deve mencionar que o default é 3
         assert "default: 3" in result.output.lower() or "(default: 3)" in result.output
+
+    def test_flag_show_deps_reconhecida(self):
+        """Verifica que a flag --show-deps é aceita pelo CLI."""
+        runner = CliRunner()
+
+        result = runner.invoke(review, ["--help"])
+
+        assert result.exit_code == 0
+        assert "--show-deps" in result.output
+        assert "dependências" in result.output.lower() or "dependencies" in result.output.lower()
+
+    def test_flag_show_deps_short_form(self):
+        """Verifica que a forma curta -D funciona."""
+        runner = CliRunner()
+
+        result = runner.invoke(review, ["--help"])
+
+        assert result.exit_code == 0
+        assert "-D" in result.output
