@@ -5,7 +5,7 @@ from typing import TextIO
 import sys
 
 from ..i18n import t
-from ..models import Category, Finding, ReviewResult, Severity
+from ..models import Category, ContextGraph, Finding, ReviewResult, Severity
 
 
 # Códigos ANSI para cores
@@ -132,6 +132,83 @@ def format_finding(finding: Finding) -> str:
     return "\n".join(lines)
 
 
+def _group_deps_by_file(graphs: list[ContextGraph]) -> dict[str, list[ContextGraph]]:
+    """Agrupa ContextGraphs por arquivo.
+
+    Args:
+        graphs: Lista de grafos de contexto
+
+    Returns:
+        Dicionário mapeando arquivo -> lista de grafos
+    """
+    deps_by_file: dict[str, list[ContextGraph]] = defaultdict(list)
+    for graph in graphs:
+        deps_by_file[graph.file].append(graph)
+    return dict(deps_by_file)
+
+
+def format_dependency_graph(graph: ContextGraph) -> str:
+    """Formata um grafo de dependências em árvore ASCII.
+
+    Args:
+        graph: Grafo de contexto de uma função
+
+    Returns:
+        String formatada multi-linha com árvore de deps
+    """
+    lines = []
+
+    # Header: 📊 DEPENDENCIES: function_name (linha N)
+    header = _colorize(
+        f"📊 {t('terminal.dependencies')}: {graph.function_name}",
+        Colors.BOLD,
+        Colors.CYAN,
+    )
+    lines.append(f"  {header}")
+    lines.append("  │")
+
+    has_callers = len(graph.callers) > 0
+    has_callees = len(graph.callees) > 0
+
+    # Se não tem callers nem callees
+    if not has_callers and not has_callees:
+        lines.append(f"  └── {_colorize(t('terminal.no_deps_found'), Colors.DIM)}")
+        lines.append("")
+        return "\n".join(lines)
+
+    # Callers
+    if has_callers:
+        # Usa ├── se tem callees, └── se não tem
+        branch = "├──" if has_callees else "└──"
+        lines.append(f"  {branch} 📥 {_colorize(t('terminal.callers'), Colors.YELLOW)} ({len(graph.callers)})")
+
+        for i, caller in enumerate(graph.callers):
+            is_last = i == len(graph.callers) - 1
+            # Conectores verticais dependem se tem callees depois
+            prefix = "│   " if has_callees else "    "
+            connector = "└──" if is_last else "├──"
+            location = _colorize(f"{caller.file}:{caller.line}", Colors.DIM)
+            snippet = caller.snippet.strip()[:50] if caller.snippet else ""
+            lines.append(f"  {prefix}{connector} {location}     → {snippet}")
+
+        if has_callees:
+            lines.append("  │")
+
+    # Callees
+    if has_callees:
+        lines.append(f"  └── 📤 {_colorize(t('terminal.callees'), Colors.GREEN)} ({len(graph.callees)})")
+
+        for i, callee in enumerate(graph.callees):
+            is_last = i == len(graph.callees) - 1
+            connector = "└──" if is_last else "├──"
+            func_name = callee.function_name or "?"
+            location = _colorize(f"{callee.file}:{callee.line}", Colors.DIM)
+            lines.append(f"      {connector} {func_name}     → {location}")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def format_file_header(file_path: str) -> str:
     """Formata o header de um arquivo.
 
@@ -194,12 +271,19 @@ def format_summary(result: ReviewResult) -> str:
 """
 
 
-def format_result(result: ReviewResult, output: TextIO = sys.stdout) -> None:
+def format_result(
+    result: ReviewResult,
+    output: TextIO = sys.stdout,
+    context_graphs: list[ContextGraph] | None = None,
+    show_deps: bool = False,
+) -> None:
     """Formata e imprime o resultado completo.
 
     Args:
         result: Resultado da análise
         output: Stream de saída (default: stdout)
+        context_graphs: Lista de grafos de contexto para deps (opcional)
+        show_deps: Se True, exibe dependências antes dos findings
     """
     # Header
     output.write(format_header(result))
@@ -209,17 +293,37 @@ def format_result(result: ReviewResult, output: TextIO = sys.stdout) -> None:
     for finding in result.findings:
         by_file[finding.file].append(finding)
 
-    # Imprime findings agrupados
-    for file_path, findings in sorted(by_file.items()):
+    # Agrupa deps por arquivo se show_deps ativo
+    deps_by_file: dict[str, list[ContextGraph]] = {}
+    if show_deps and context_graphs:
+        deps_by_file = _group_deps_by_file(context_graphs)
+
+    # Coleta todos os arquivos (união de findings e deps)
+    all_files = set(by_file.keys())
+    if show_deps:
+        all_files.update(deps_by_file.keys())
+
+    # Imprime findings e deps agrupados por arquivo
+    for file_path in sorted(all_files):
         output.write(format_file_header(file_path))
         output.write("\n")
 
-        # Ordena por linha
-        for finding in sorted(findings, key=lambda f: f.line):
-            output.write(format_finding(finding))
+        # Renderiza deps antes dos findings (se show_deps ativo)
+        if show_deps and file_path in deps_by_file:
+            for graph in deps_by_file[file_path]:
+                output.write(format_dependency_graph(graph))
 
-    # Se tinha arquivos analisados mas sem findings
-    if result.files_analyzed > 0 and not result.findings:
+        # Renderiza findings
+        findings = by_file.get(file_path, [])
+        if findings:
+            for finding in sorted(findings, key=lambda f: f.line):
+                output.write(format_finding(finding))
+        elif show_deps and file_path in deps_by_file:
+            # Arquivo com deps mas sem findings
+            output.write(f"  {t('terminal.no_findings_file')}\n\n")
+
+    # Se tinha arquivos analisados mas sem findings e sem deps
+    if result.files_analyzed > 0 and not result.findings and not deps_by_file:
         output.write("\n")
 
     # Resumo

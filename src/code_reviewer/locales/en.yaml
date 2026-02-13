@@ -60,6 +60,13 @@ terminal:
   no_problems: "✓ No issues found. Code approved!"
   raw_response: "AI raw response:"
 
+  # Dependencies
+  dependencies: "DEPENDENCIES"
+  callers: "CALLERS"
+  callees: "CALLEES"
+  no_deps_found: "No dependencies found"
+  no_findings_file: "✅ No findings in this file"
+
 parser:
   # Fallback
   unstructured_response: "Unstructured response"

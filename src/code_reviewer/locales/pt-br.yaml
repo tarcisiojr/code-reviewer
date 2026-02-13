@@ -60,6 +60,13 @@ terminal:
   no_problems: "✓ Nenhum problema encontrado. Código aprovado!"
   raw_response: "Resposta raw da IA:"
 
+  # Dependências
+  dependencies: "DEPENDÊNCIAS"
+  callers: "CALLERS"
+  callees: "CALLEES"
+  no_deps_found: "Sem dependências encontradas"
+  no_findings_file: "✅ Sem findings neste arquivo"
+
 parser:
   # Fallback
   unstructured_response: "Resposta não estruturada"
