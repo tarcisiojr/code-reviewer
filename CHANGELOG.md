@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.8.0 (2026-02-27)
+
+### Features
+
+- Update CopilotCLIRunner to pass prompt via stdin to avoid ARG_MAX limit
+  ([`2950870`](https://github.com/tarcisiojr/airev/commit/2950870ff473c34a797c1fa44542d24a59960c82))
+
+
 ## v1.7.0 (2026-02-13)
 
 ### Features
