@@ -45,34 +45,45 @@ O sistema SHALL perguntar ao usuário se deseja adicionar descrição quando: n�
 - **WHEN** o diff foi exibido e descrição não foi fornecida
 - **AND** `--no-interactive` não foi usado
 - **AND** stdout é TTY
-- **THEN** o sistema pergunta se o usuário quer adicionar descrição
+- **THEN** o sistema exibe prompt com instruções claras sobre atalhos de teclado
 
-#### Scenario: Usuário pula descrição
+#### Scenario: Usuário envia descrição com Enter
+- **WHEN** o prompt interativo é exibido
+- **AND** o usuário digitou ou colou texto
+- **AND** o usuário pressiona Enter
+- **THEN** o texto é enviado e capturado como descrição
+
+#### Scenario: Usuário pula descrição com Esc
+- **WHEN** o prompt interativo é exibido
+- **AND** o usuário pressiona Esc
+- **THEN** o sistema continua sem descrição
+
+#### Scenario: Usuário pula descrição com input vazio
 - **WHEN** o prompt interativo é exibido
 - **AND** o usuário pressiona Enter sem digitar nada
 - **THEN** o sistema continua sem descrição
-
-#### Scenario: Usuário fornece descrição
-- **WHEN** o prompt interativo é exibido
-- **AND** o usuário digita ou cola texto
-- **AND** o usuário pressiona Ctrl+D ou Enter em linha vazia após conteúdo
-- **THEN** a descrição é capturada e disponibilizada para inclusão no prompt
 
 ### Requirement: Suportar input multi-linha com bracketed paste
 O sistema SHALL suportar input multi-linha usando `prompt_toolkit` com bracketed paste mode habilitado.
 
 #### Scenario: Colar Markdown com quebras de linha
-- **WHEN** o usuário cola texto contendo quebras de linha (ex: descrição de PR)
+- **WHEN** o usuário cola texto contendo quebras de linha (ex: descrição de MR)
 - **THEN** todas as linhas são capturadas, incluindo linhas vazias intermediárias
 
-#### Scenario: Finalizar input com Ctrl+D
-- **WHEN** o usuário terminou de digitar/colar
-- **AND** pressiona Ctrl+D
-- **THEN** o input é finalizado e processado
+#### Scenario: Nova linha com Shift+Enter
+- **WHEN** o usuário está digitando no prompt interativo
+- **AND** pressiona Shift+Enter
+- **THEN** uma nova linha é inserida no texto sem enviar
 
-#### Scenario: Cancelar input com Ctrl+C
+#### Scenario: Nova linha com backslash+Enter
+- **WHEN** o usuário está digitando no prompt interativo
+- **AND** digita `\` seguido de Enter
+- **THEN** o caractere `\` é removido do texto
+- **AND** uma nova linha é inserida no texto sem enviar
+
+#### Scenario: Cancelar input com Esc
 - **WHEN** o usuário está no prompt de descrição
-- **AND** pressiona Ctrl+C
+- **AND** pressiona Esc
 - **THEN** o sistema continua sem descrição (não aborta o comando)
 
 ### Requirement: Limitar tamanho da descrição
