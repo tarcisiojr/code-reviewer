@@ -3,9 +3,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from prompt_toolkit.keys import Keys
 
 from code_reviewer.description_input import (
     MAX_DESCRIPTION_LENGTH,
+    _create_key_bindings,
+    ask_description_interactive,
     get_description,
     is_interactive_mode,
     read_from_stdin,
@@ -119,6 +122,129 @@ class TestTruncateDescription:
 
         reporter.warning.assert_called_once()
         assert "truncada" in reporter.warning.call_args[0][0].lower()
+
+
+class TestCreateKeyBindings:
+    """Testes para os key bindings customizados do prompt interativo."""
+
+    def _make_event(self, text_before_cursor="", full_text=""):
+        """Cria um mock de KeyPressEvent para testes de key bindings."""
+        event = MagicMock()
+        buf = MagicMock()
+        doc = MagicMock()
+        doc.text_before_cursor = text_before_cursor
+        buf.document = doc
+        buf.text = full_text
+        event.current_buffer = buf
+        event.app = MagicMock()
+        return event
+
+    def _find_handler(self, bindings, *keys):
+        """Encontra handler pelo nome das keys no prompt_toolkit."""
+        target = tuple(keys)
+        for b in bindings.bindings:
+            if b.keys == target:
+                return b.handler
+        return None
+
+    def test_enter_envia_texto(self):
+        """Verifica que Enter envia o texto (validate_and_handle)."""
+        bindings = _create_key_bindings()
+        event = self._make_event(text_before_cursor="Descrição do MR")
+
+        handler = self._find_handler(bindings, Keys.ControlM)
+        assert handler is not None
+        handler(event)
+
+        event.current_buffer.validate_and_handle.assert_called_once()
+
+    def test_enter_com_texto_vazio_envia(self):
+        """Verifica que Enter com texto vazio envia (retorna string vazia)."""
+        bindings = _create_key_bindings()
+        event = self._make_event(text_before_cursor="")
+
+        handler = self._find_handler(bindings, Keys.ControlM)
+        handler(event)
+
+        event.current_buffer.validate_and_handle.assert_called_once()
+
+    def test_backslash_enter_insere_nova_linha(self):
+        """Verifica que \\+Enter remove o \\ e insere nova linha."""
+        bindings = _create_key_bindings()
+        event = self._make_event(text_before_cursor="Linha 1\\")
+
+        handler = self._find_handler(bindings, Keys.ControlM)
+        handler(event)
+
+        # Deve remover o backslash e inserir nova linha
+        event.current_buffer.delete_before_cursor.assert_called_once_with(count=1)
+        event.current_buffer.insert_text.assert_called_once_with("\n")
+        # Não deve enviar
+        event.current_buffer.validate_and_handle.assert_not_called()
+
+    def test_shift_enter_insere_nova_linha(self):
+        """Verifica que Shift+Enter (escape+enter) insere nova linha."""
+        bindings = _create_key_bindings()
+        event = self._make_event(text_before_cursor="Texto existente")
+
+        handler = self._find_handler(bindings, Keys.Escape, Keys.ControlM)
+        assert handler is not None
+        handler(event)
+
+        event.current_buffer.insert_text.assert_called_once_with("\n")
+
+    def test_esc_cancela_retornando_none(self):
+        """Verifica que Esc cancela o prompt retornando None."""
+        bindings = _create_key_bindings()
+        event = self._make_event()
+
+        handler = self._find_handler(bindings, Keys.Escape)
+        assert handler is not None
+        handler(event)
+
+        event.app.exit.assert_called_once_with(result=None)
+
+
+class TestAskDescriptionInteractive:
+    """Testes para função ask_description_interactive."""
+
+    def test_texto_colado_preserva_quebras_de_linha(self):
+        """Verifica que texto colado via Ctrl+V preserva quebras de linha."""
+        texto_colado = "Linha 1\nLinha 2\nLinha 3"
+        with patch(
+            "code_reviewer.description_input.pt_prompt", return_value=texto_colado
+        ):
+            result = ask_description_interactive()
+
+        assert result == texto_colado
+
+    def test_esc_retorna_none(self):
+        """Verifica que Esc (prompt retorna None) resulta em None."""
+        with patch(
+            "code_reviewer.description_input.pt_prompt", return_value=None
+        ):
+            result = ask_description_interactive()
+
+        assert result is None
+
+    def test_texto_vazio_retorna_none(self):
+        """Verifica que texto vazio ou só whitespace retorna None."""
+        with patch(
+            "code_reviewer.description_input.pt_prompt", return_value="   \n  "
+        ):
+            result = ask_description_interactive()
+
+        assert result is None
+
+    def test_texto_com_strip(self):
+        """Verifica que texto é stripped antes de retornar."""
+        with patch(
+            "code_reviewer.description_input.pt_prompt",
+            return_value="  Descrição  \n",
+        ):
+            result = ask_description_interactive()
+
+        assert result == "Descrição"
 
 
 class TestGetDescription:

@@ -46,34 +46,73 @@ def is_interactive_mode(no_interactive: bool, json_output: bool) -> bool:
     return True
 
 
+def _create_key_bindings() -> KeyBindings:
+    """Cria key bindings customizados para o prompt interativo.
+
+    Comportamento:
+    - Enter: envia o texto (ou insere nova linha se último char é backslash)
+    - Shift+Enter / Alt+Enter: insere nova linha
+    - Esc: cancela e retorna None
+
+    Returns:
+        KeyBindings configurados
+    """
+    bindings = KeyBindings()
+
+    @bindings.add("enter")
+    def _handle_enter(event):
+        """Enter envia o texto. Se termina com \\, remove e insere nova linha."""
+        buf = event.current_buffer
+        text_before = buf.document.text_before_cursor
+
+        if text_before.endswith("\\"):
+            # Remove o backslash e insere nova linha
+            buf.delete_before_cursor(count=1)
+            buf.insert_text("\n")
+        else:
+            # Envia o texto
+            buf.validate_and_handle()
+
+    @bindings.add("escape", "enter")
+    def _handle_shift_enter(event):
+        """Shift+Enter / Alt+Enter insere nova linha."""
+        event.current_buffer.insert_text("\n")
+
+    @bindings.add("escape", eager=False)
+    def _handle_escape(event):
+        """Esc cancela o prompt e retorna None."""
+        event.app.exit(result=None)
+
+    return bindings
+
+
 def ask_description_interactive() -> str | None:
     """Pergunta descrição ao usuário de forma interativa.
 
-    Usa prompt_toolkit para suportar input multi-linha com bracketed paste.
+    Usa prompt_toolkit com key bindings customizados:
+    - Enter envia o texto
+    - Shift+Enter ou backslash+Enter insere nova linha
+    - Esc cancela e segue sem descrição
+    - Texto colado via Ctrl+V preserva quebras de linha
 
     Returns:
         Descrição digitada/colada ou None se usuário pulou
     """
-    # Configura key bindings para finalizar com Enter em linha vazia
-    bindings = KeyBindings()
+    bindings = _create_key_bindings()
 
-    print("📝 Descrição das alterações:")
-    print("   (Cole ou digite. Enter em linha vazia para enviar, Ctrl+C para pular)\n")
+    print("📝 Descrição das alterações (cole o texto do MR):")
+    print("   Enter envia · Shift+Enter ou \\ para nova linha · Esc para pular\n")
 
-    try:
-        text = pt_prompt(
-            "> ",
-            multiline=True,
-            key_bindings=bindings,
-        )
-        return text.strip() if text.strip() else None
-    except KeyboardInterrupt:
-        # Ctrl+C: continuar sem descrição
-        print()  # Nova linha após ^C
+    text = pt_prompt(
+        "> ",
+        multiline=True,
+        key_bindings=bindings,
+    )
+
+    if text is None:
         return None
-    except EOFError:
-        # Ctrl+D: finalizar input
-        return None
+
+    return text.strip() if text.strip() else None
 
 
 def truncate_description(description: str, reporter=None) -> str:
