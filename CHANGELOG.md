@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.9.0 (2026-03-03)
+
+### Features
+
+- Refatorar prompt interativo de descrição para melhorar usabilidade e intuitividade
+  ([`3e4583e`](https://github.com/tarcisiojr/airev/commit/3e4583e1f4b9487176773bd028c16d93c3b90a55))
+
+- Remover implementação antiga do CopilotCLIRunner e adicionar nova abordagem para passar prompt via
+  stdin
+  ([`0b66a04`](https://github.com/tarcisiojr/airev/commit/0b66a044e440f0a2d2988ef0b8f0c83a818640ad))
+
+
 ## v1.8.0 (2026-02-27)
 
 ### Features
