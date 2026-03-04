@@ -28,8 +28,11 @@ def _ensure_initialized():
     try:
         from posthog import Posthog
 
-        # Suprime logs do SDK (erros de rede, SSL, etc.)
-        logging.getLogger("posthog").setLevel(logging.CRITICAL)
+        # Suprime todos os logs do SDK (erros de rede, SSL, etc.)
+        posthog_logger = logging.getLogger("posthog")
+        posthog_logger.setLevel(logging.CRITICAL + 1)
+        posthog_logger.addHandler(logging.NullHandler())
+        posthog_logger.propagate = False
 
         _posthog = Posthog(
             _API_KEY,
