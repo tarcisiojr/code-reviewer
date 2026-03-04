@@ -1,5 +1,6 @@
 """CLI Entry Point - Comando principal do airev."""
 
+import atexit
 import sys
 import time
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 import click
 
 from . import __version__
+from .analytics import shutdown_analytics, track_event
 from .context_builder import build_context_graph
 from .description_input import get_description
 from .diff_parser import get_current_branch, get_git_diff, parse_diff
@@ -161,6 +163,22 @@ def review(
     workdir = workdir or Path.cwd()
     start_time = time.perf_counter()
 
+    # Registra shutdown do analytics no encerramento do processo
+    atexit.register(shutdown_analytics)
+
+    # Evento de início do review com flags de configuração
+    track_event("review_started", {
+        "runner": runner,
+        "lang": lang,
+        "json_output": json_output,
+        "text_quality": text_quality,
+        "show_deps": show_deps,
+        "no_interactive": no_interactive,
+        "min_confidence": min_confidence,
+        "context_lines": context_lines,
+        "version": __version__,
+    })
+
     # Configura o idioma
     set_language(lang)
 
@@ -193,6 +211,7 @@ def review(
     try:
         current_branch = get_current_branch(workdir)
     except Exception as e:
+        track_event("review_failed", {"error_type": "branch_error", "version": __version__})
         reporter.error(t("cli.error_branch", error=e))
         sys.exit(1)
 
@@ -203,6 +222,7 @@ def review(
         try:
             diff_output = get_git_diff(base, workdir, context_lines=context_lines)
         except Exception as e:
+            track_event("review_failed", {"error_type": "diff_error", "version": __version__})
             reporter.error(t("cli.error_diff", error=e))
             reporter.print(t("cli.error_diff_help", base=base))
             sys.exit(1)
@@ -256,11 +276,13 @@ def review(
     try:
         ai_runner = get_runner(runner)
     except ValueError as e:
+        track_event("review_failed", {"error_type": "runner_not_found", "version": __version__})
         reporter.error(t("cli.error_runner_invalid", error=e))
         sys.exit(1)
 
     # Verifica disponibilidade do CLI
     if not ai_runner.check_availability():
+        track_event("review_failed", {"error_type": "runner_unavailable", "version": __version__})
         reporter.error(t("cli.error_runner_unavailable", runner=runner))
         reporter.print(t("cli.error_runner_help"))
         sys.exit(1)
@@ -270,20 +292,27 @@ def review(
         try:
             response = ai_runner.run(prompt, workdir)
         except RunnerNotFoundError as e:
+            track_event("review_failed", {"error_type": "runner_not_found", "version": __version__})
             reporter.error(t("cli.error_runner_not_found", error=e))
             sys.exit(1)
         except Exception as e:
+            track_event("review_failed", {"error_type": "runner_error", "version": __version__})
             reporter.error(t("cli.error_execution", error=e))
             sys.exit(1)
 
     # Parseia a resposta
     with reporter.status(t("cli.processing_response")):
-        result = parse_response(
-            response,
-            branch=current_branch,
-            base=base,
-            files_analyzed=len(diff_files),
-        )
+        try:
+            result = parse_response(
+                response,
+                branch=current_branch,
+                base=base,
+                files_analyzed=len(diff_files),
+            )
+        except Exception as e:
+            track_event("review_failed", {"error_type": "parse_error", "version": __version__})
+            reporter.error(t("cli.error_execution", error=e))
+            sys.exit(1)
 
     # Filtra findings por confidence
     if min_confidence > 1:
@@ -311,6 +340,17 @@ def review(
 
     # Calcula tempo total
     elapsed = time.perf_counter() - start_time
+
+    # Evento de review concluído com métricas
+    track_event("review_completed", {
+        "duration_s": round(elapsed, 2),
+        "files_count": len(diff_files),
+        "findings_total": result.summary.total,
+        "findings_critical": result.summary.critical,
+        "findings_warning": result.summary.warning,
+        "findings_info": result.summary.info,
+        "version": __version__,
+    })
 
     # Output
     if json_output:

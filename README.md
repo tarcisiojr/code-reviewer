@@ -190,6 +190,42 @@ Com `--json-output`, o resultado segue a estrutura:
     fi
 ```
 
+## Telemetria
+
+O airev coleta dados anônimos de uso para ajudar a entender como a ferramenta é utilizada e melhorar a experiência. A telemetria é **habilitada por padrão** e pode ser desabilitada a qualquer momento.
+
+### O que é coletado
+
+Apenas metadados anônimos e não-sensíveis:
+
+- Runner utilizado (gemini, copilot)
+- Flags de configuração (valores booleanos)
+- Contagens numéricas (arquivos analisados, findings por severidade)
+- Duração do review
+- Tipo de erro em caso de falha (enum fixo, sem mensagens de erro)
+- Versão do airev
+
+### O que **não** é coletado
+
+- Código-fonte ou diffs
+- Nomes de branches ou caminhos de arquivo
+- Descrições de PR ou mensagens de erro
+- Qualquer informação que identifique o projeto analisado
+
+### Identidade
+
+Um UUID v4 aleatório é gerado na primeira execução e salvo em `~/.cache/airev/anonymous_id`. Este ID é completamente anônimo e não pode ser associado a nenhum dado pessoal.
+
+### Opt-out
+
+Para desabilitar a telemetria:
+
+```bash
+export AIREV_NO_TELEMETRY=1
+```
+
+Quando desabilitada, nenhum evento é enviado, nenhuma conexão de rede é feita, e o SDK de analytics não é sequer importado.
+
 ## Desenvolvimento
 
 ### Executar testes
@@ -223,6 +259,10 @@ src/code_reviewer/
 ├── formatters/
 │   ├── terminal.py     # Formatação colorida com rich
 │   └── progress.py     # Reporter de progresso
+├── analytics/
+│   ├── __init__.py     # API pública: track_event(), shutdown_analytics()
+│   ├── client.py       # Client PostHog com lazy init e flush assíncrono
+│   └── identity.py     # UUID anônimo persistido
 ├── runners/
 │   ├── base.py         # Interface AIRunner
 │   ├── gemini.py       # Runner Gemini CLI
