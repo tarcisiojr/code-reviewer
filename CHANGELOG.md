@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.10.1 (2026-03-04)
+
+### Bug Fixes
+
+- Coleta de analytics
+  ([`12372b3`](https://github.com/tarcisiojr/airev/commit/12372b301262f1cd95449ec1604b1efc0b522c15))
+
+
 ## v1.10.0 (2026-03-04)
 
 ### Features
