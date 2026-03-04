@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.10.3 (2026-03-04)
+
+### Bug Fixes
+
+- Suprimindo erros de telemetria
+  ([`1d223c3`](https://github.com/tarcisiojr/airev/commit/1d223c3956b191bf260482fcfb9e21f3fcf4199e))
+
+
 ## v1.10.2 (2026-03-04)
 
 ### Bug Fixes
