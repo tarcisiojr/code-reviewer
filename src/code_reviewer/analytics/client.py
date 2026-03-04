@@ -24,14 +24,9 @@ def _ensure_initialized():
         return
 
     try:
-        import posthog
+        from posthog import Posthog
 
-        posthog.project_api_key = _API_KEY
-        posthog.host = _HOST
-        posthog.debug = False
-        # Desabilita logs do SDK para falha silenciosa
-        posthog.disabled = False
-        _posthog = posthog
+        _posthog = Posthog(_API_KEY, host=_HOST)
         _initialized = True
 
         # Registra flush no encerramento do processo
@@ -52,7 +47,11 @@ def capture(distinct_id: str, event: str, properties: dict | None = None):
     try:
         _ensure_initialized()
         if _posthog is not None:
-            _posthog.capture(distinct_id, event, properties or {})
+            _posthog.capture(
+                event,
+                distinct_id=distinct_id,
+                properties=properties or {},
+            )
     except Exception:
         # Falha silenciosa — nenhum erro de telemetria deve aparecer
         pass

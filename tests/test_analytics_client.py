@@ -27,44 +27,56 @@ class TestLazyInit:
 
     def test_sdk_inicializado_na_primeira_capture(self):
         """O SDK é inicializado na primeira chamada a capture()."""
-        mock_posthog = MagicMock()
-        with patch.dict("sys.modules", {"posthog": mock_posthog}):
+        mock_instance = MagicMock()
+        mock_posthog_module = MagicMock()
+        mock_posthog_module.Posthog.return_value = mock_instance
+
+        with patch.dict("sys.modules", {"posthog": mock_posthog_module}):
             client.capture("test-id", "test_event")
 
         assert client._initialized is True
+        assert client._posthog is mock_instance
 
     def test_sdk_inicializado_apenas_uma_vez(self):
         """Chamadas subsequentes reutilizam o SDK já inicializado."""
-        mock_posthog = MagicMock()
-        with patch.dict("sys.modules", {"posthog": mock_posthog}):
+        mock_instance = MagicMock()
+        mock_posthog_module = MagicMock()
+        mock_posthog_module.Posthog.return_value = mock_instance
+
+        with patch.dict("sys.modules", {"posthog": mock_posthog_module}):
             client.capture("test-id", "event_1")
             client.capture("test-id", "event_2")
 
-        # project_api_key é setado apenas uma vez (na init)
-        assert mock_posthog.project_api_key == client._API_KEY
+        # Posthog() chamado apenas uma vez
+        mock_posthog_module.Posthog.assert_called_once()
 
 
 class TestCapture:
     """Testes para envio de eventos."""
 
     def test_evento_capturado_com_propriedades(self):
-        """Eventos são enviados com distinct_id, nome e propriedades."""
-        mock_posthog = MagicMock()
-        with patch.dict("sys.modules", {"posthog": mock_posthog}):
-            client.capture("uid-123", "review_started", {"runner": "gemini"})
+        """Eventos são enviados com event, distinct_id e propriedades."""
+        mock_instance = MagicMock()
+        client._posthog = mock_instance
+        client._initialized = True
 
-        mock_posthog.capture.assert_called_once_with(
-            "uid-123", "review_started", {"runner": "gemini"}
+        client.capture("uid-123", "review_started", {"runner": "gemini"})
+
+        mock_instance.capture.assert_called_once_with(
+            "review_started",
+            distinct_id="uid-123",
+            properties={"runner": "gemini"},
         )
 
     def test_falha_silenciosa_em_erro_de_rede(self):
         """Erro no capture não propaga exceção."""
-        mock_posthog = MagicMock()
-        mock_posthog.capture.side_effect = Exception("Erro de rede")
+        mock_instance = MagicMock()
+        mock_instance.capture.side_effect = Exception("Erro de rede")
+        client._posthog = mock_instance
+        client._initialized = True
 
-        with patch.dict("sys.modules", {"posthog": mock_posthog}):
-            # Não deve lançar exceção
-            client.capture("uid-123", "review_started")
+        # Não deve lançar exceção
+        client.capture("uid-123", "review_started")
 
     def test_falha_silenciosa_se_sdk_nao_importavel(self):
         """Se o SDK não pode ser importado, falha silenciosa."""
