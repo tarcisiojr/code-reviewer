@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.10.2 (2026-03-04)
+
+### Bug Fixes
+
+- Suprimindo erros.
+  ([`68f62d6`](https://github.com/tarcisiojr/airev/commit/68f62d66c886edb223d454728769403ea06ebd24))
+
+
 ## v1.10.1 (2026-03-04)
 
 ### Bug Fixes
