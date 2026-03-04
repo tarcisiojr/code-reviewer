@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.10.0 (2026-03-04)
+
+### Features
+
+- Implementação de telemetria com PostHog
+  ([`7ba236d`](https://github.com/tarcisiojr/airev/commit/7ba236dd0d1d8cfee8a23a22e720544243885a31))
+
+
 ## v1.9.0 (2026-03-03)
 
 ### Features
