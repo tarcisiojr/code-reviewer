@@ -5,11 +5,13 @@ evitando overhead quando a telemetria está desabilitada.
 """
 
 import atexit
+import logging
 import threading
 
 # Chave e host do PostHog (projeto airev)
 _API_KEY = "phc_Pa2Q1ssNkenBX1T0G3FbJ89aRJswyPwEJhtixiOo01N"
 _HOST = "https://us.i.posthog.com"
+_REQUEST_TIMEOUT = 5
 
 # Estado do client (inicialização lazy)
 _initialized = False
@@ -26,7 +28,16 @@ def _ensure_initialized():
     try:
         from posthog import Posthog
 
-        _posthog = Posthog(_API_KEY, host=_HOST)
+        # Suprime logs do SDK (erros de rede, SSL, etc.)
+        logging.getLogger("posthog").setLevel(logging.CRITICAL)
+
+        _posthog = Posthog(
+            _API_KEY,
+            host=_HOST,
+            timeout=_REQUEST_TIMEOUT,
+            max_retries=1,
+            on_error=lambda error, items: None,
+        )
         _initialized = True
 
         # Registra flush no encerramento do processo
